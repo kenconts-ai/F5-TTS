@@ -4,13 +4,17 @@ from __future__ import annotations
 
 import os
 import random
+import unicodedata
 from collections import defaultdict
 from importlib.resources import files
 
 import jieba
 import torch
-from pypinyin import Style, lazy_pinyin
+from g2pw import G2PWConverter
 from torch.nn.utils.rnn import pad_sequence
+
+
+conv = G2PWConverter(style="pinyin", enable_non_tradional_chinese=True)
 
 
 # seed everything
@@ -170,18 +174,22 @@ def convert_char_to_pinyin(text_list, polyphone=True):
                     char_list.append(" ")
                 char_list.extend(seg)
             elif polyphone and seg_byte_len == 3 * len(seg):  # if pure east asian characters
-                seg_ = lazy_pinyin(seg, style=Style.TONE3, tone_sandhi=True)
+                seg_g2pw_ = conv(seg)
                 for i, c in enumerate(seg):
                     if is_chinese(c):
                         char_list.append(" ")
-                    char_list.append(seg_[i])
+
+                    if unicodedata.category(c).startswith("P"):
+                        char_list.append(c)
+                    else:
+                        char_list.append(seg_g2pw_[0][i])
             else:  # if mixed characters, alphabets and symbols
                 for c in seg:
                     if ord(c) < 256:
                         char_list.extend(c)
                     elif is_chinese(c):
                         char_list.append(" ")
-                        char_list.extend(lazy_pinyin(c, style=Style.TONE3, tone_sandhi=True))
+                        char_list.extend(conv(c)[0])
                     else:
                         char_list.append(c)
         final_text_list.append(char_list)

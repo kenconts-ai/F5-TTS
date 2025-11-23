@@ -176,14 +176,19 @@ def convert_char_to_pinyin(text_list, polyphone=True):
                 if unicodedata.category(c).startswith("P"):
                     char_list.append(c)
                 else:
-                    char_list.append(seg_g2pw_[0][i][:-1] if seg_g2pw_[0][i].endswith("5") else seg_g2pw_[0][i])
+                    char_list.append(
+                        seg_g2pw_[0][i][:-1] if seg_g2pw_[0][i].endswith("5") else seg_g2pw_[0][i]
+                    )  # NOTE: de5 -> de
         else:  # if mixed characters, alphabets and symbols
             for c in seg:
                 if ord(c) < 256:
                     char_list.extend(c)
                 elif is_chinese(c):
+                    seg_g2pw_ = conv(c)
                     char_list.append(" ")
-                    char_list.extend(conv(c)[0])
+                    char_list.append(
+                        seg_g2pw_[0][0][:-1] if seg_g2pw_[0][0].endswith("5") else seg_g2pw_[0][0]
+                    )  # NOTE: de5 -> de
                 else:
                     char_list.append(c)
         final_text_list.append(char_list)

@@ -8,7 +8,6 @@ import unicodedata
 from collections import defaultdict
 from importlib.resources import files
 
-import jieba
 import torch
 from g2pw import G2PWConverter
 from torch.nn.utils.rnn import pad_sequence
@@ -150,10 +149,6 @@ def get_tokenizer(dataset_name, tokenizer: str = "pinyin"):
 
 
 def convert_char_to_pinyin(text_list, polyphone=True):
-    if jieba.dt.initialized is False:
-        jieba.default_logger.setLevel(50)  # CRITICAL
-        jieba.initialize()
-
     final_text_list = []
     custom_trans = str.maketrans(
         {";": ",", "“": '"', "”": '"', "‘": "'", "’": "'"}
@@ -166,32 +161,31 @@ def convert_char_to_pinyin(text_list, polyphone=True):
 
     for text in text_list:
         char_list = []
-        text = text.translate(custom_trans)
-        for seg in jieba.cut(text):
-            seg_byte_len = len(bytes(seg, "UTF-8"))
-            if seg_byte_len == len(seg):  # if pure alphabets and symbols
-                if char_list and seg_byte_len > 1 and char_list[-1] not in " :'\"":
+        seg = text.translate(custom_trans)
+        seg_byte_len = len(bytes(seg, "UTF-8"))
+        if seg_byte_len == len(seg):  # if pure alphabets and symbols
+            if char_list and seg_byte_len > 1 and char_list[-1] not in " :'\"":
+                char_list.append(" ")
+            char_list.extend(seg)
+        elif polyphone and seg_byte_len == 3 * len(seg):  # if pure east asian characters
+            seg_g2pw_ = conv(seg)
+            for i, c in enumerate(seg):
+                if is_chinese(c):
                     char_list.append(" ")
-                char_list.extend(seg)
-            elif polyphone and seg_byte_len == 3 * len(seg):  # if pure east asian characters
-                seg_g2pw_ = conv(seg)
-                for i, c in enumerate(seg):
-                    if is_chinese(c):
-                        char_list.append(" ")
 
-                    if unicodedata.category(c).startswith("P"):
-                        char_list.append(c)
-                    else:
-                        char_list.append(seg_g2pw_[0][i])
-            else:  # if mixed characters, alphabets and symbols
-                for c in seg:
-                    if ord(c) < 256:
-                        char_list.extend(c)
-                    elif is_chinese(c):
-                        char_list.append(" ")
-                        char_list.extend(conv(c)[0])
-                    else:
-                        char_list.append(c)
+                if unicodedata.category(c).startswith("P"):
+                    char_list.append(c)
+                else:
+                    char_list.append(seg_g2pw_[0][i])
+        else:  # if mixed characters, alphabets and symbols
+            for c in seg:
+                if ord(c) < 256:
+                    char_list.extend(c)
+                elif is_chinese(c):
+                    char_list.append(" ")
+                    char_list.extend(conv(c)[0])
+                else:
+                    char_list.append(c)
         final_text_list.append(char_list)
 
     return final_text_list

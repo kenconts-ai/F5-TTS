@@ -28,9 +28,9 @@ from pydub import AudioSegment, silence
 from transformers import pipeline
 from vocos import Vocos
 
+from f5_tts.frontend.tts_frd_custom import text_normalize_new
 from f5_tts.model import CFM
 from f5_tts.model.utils import convert_char_to_pinyin, get_tokenizer
-from f5_tts.frontend.tts_frd_custom import text_normalize_new
 
 
 _ref_audio_cache = {}

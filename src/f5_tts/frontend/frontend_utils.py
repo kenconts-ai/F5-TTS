@@ -13,7 +13,10 @@
 # limitations under the License.
 
 import re
-chinese_char_pattern = re.compile(r'[\u4e00-\u9fff]+')
+
+
+chinese_char_pattern = re.compile(r"[\u4e00-\u9fff]+")
+
 
 # whether contain chinese character
 def contains_chinese(text):
@@ -22,16 +25,16 @@ def contains_chinese(text):
 
 # replace special symbol
 def replace_corner_mark(text):
-    text = text.replace('²', '平方')
-    text = text.replace('³', '立方')
+    text = text.replace("²", "平方")
+    text = text.replace("³", "立方")
     return text
 
 
 # remove meaningless symbol
 def remove_bracket(text):
-    text = text.replace('（', '').replace('）', '')
-    text = text.replace('【', '').replace('】', '')
-    text = text.replace('`', '').replace('`', '')
+    text = text.replace("（", "").replace("）", "")
+    text = text.replace("【", "").replace("】", "")
+    text = text.replace("`", "").replace("`", "")
     text = text.replace("——", " ")
     return text
 
@@ -43,7 +46,7 @@ def spell_out_number(text: str, inflect_parser):
     for i, c in enumerate(text):
         if not c.isdigit():
             if st is not None:
-                num_str = inflect_parser.number_to_words(text[st: i])
+                num_str = inflect_parser.number_to_words(text[st:i])
                 new_text.append(num_str)
                 st = None
             new_text.append(c)
@@ -53,7 +56,7 @@ def spell_out_number(text: str, inflect_parser):
     if st is not None and st < len(text):
         num_str = inflect_parser.number_to_words(text[st:])
         new_text.append(num_str)
-    return ''.join(new_text)
+    return "".join(new_text)
 
 
 # split paragrah logic：
@@ -74,18 +77,18 @@ def split_paragraph(text: str, tokenize, lang="zh", token_max_n=80, token_min_n=
             return len(tokenize(_text)) < merge_len
 
     if lang == "zh":
-        pounc = ['。', '？', '！', '；', '：', '、', '.', '?', '!', ';']
+        pounc = ["。", "？", "！", "；", "：", "、", ".", "?", "!", ";"]
     else:
-        pounc = ['.', '?', '!', ';', ':']
+        pounc = [".", "?", "!", ";", ":"]
     if comma_split:
-        pounc.extend(['，', ','])
+        pounc.extend(["，", ","])
     st = 0
     utts = []
     for i, c in enumerate(text):
         if c in pounc:
-            if len(text[st: i]) > 0:
-                utts.append(text[st: i] + c)
-            if i + 1 < len(text) and text[i + 1] in ['"', '”']:
+            if len(text[st:i]) > 0:
+                utts.append(text[st:i] + c)
+            if i + 1 < len(text) and text[i + 1] in ['"', "”"]:
                 tmp = utts.pop(-1)
                 utts.append(tmp + text[i + 1])
                 st = i + 2
@@ -93,9 +96,9 @@ def split_paragraph(text: str, tokenize, lang="zh", token_max_n=80, token_min_n=
                 st = i + 1
     if len(utts) == 0:
         if lang == "zh":
-            utts.append(text + '。')
+            utts.append(text + "。")
         else:
-            utts.append(text + '.')
+            utts.append(text + ".")
     final_utts = []
     cur_utt = ""
     for utt in utts:
@@ -117,8 +120,7 @@ def replace_blank(text: str):
     out_str = []
     for i, c in enumerate(text):
         if c == " ":
-            if ((text[i + 1].isascii() and text[i + 1] != " ") and
-                    (text[i - 1].isascii() and text[i - 1] != " ")):
+            if (text[i + 1].isascii() and text[i + 1] != " ") and (text[i - 1].isascii() and text[i - 1] != " "):
                 out_str.append(c)
         else:
             out_str.append(c)

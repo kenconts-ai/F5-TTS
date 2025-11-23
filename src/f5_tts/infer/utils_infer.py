@@ -30,6 +30,7 @@ from vocos import Vocos
 
 from f5_tts.model import CFM
 from f5_tts.model.utils import convert_char_to_pinyin, get_tokenizer
+from f5_tts.frontend.tts_frd_custom import text_normalize_new
 
 
 _ref_audio_cache = {}
@@ -397,6 +398,7 @@ def infer_process(
     fix_duration=fix_duration,
     device=device,
 ):
+    gen_text = text_normalize_new(gen_text)
     # Split the input text into batches
     audio, sr = torchaudio.load(ref_audio)
     max_chars = int(len(ref_text.encode("utf-8")) / (audio.shape[-1] / sr) * (22 - audio.shape[-1] / sr) * speed)

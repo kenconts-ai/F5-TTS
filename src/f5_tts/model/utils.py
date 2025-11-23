@@ -176,7 +176,7 @@ def convert_char_to_pinyin(text_list, polyphone=True):
                 if unicodedata.category(c).startswith("P"):
                     char_list.append(c)
                 else:
-                    char_list.append(seg_g2pw_[0][i])
+                    char_list.append(seg_g2pw_[0][i][:-1] if seg_g2pw_[0][i].endswith("5") else seg_g2pw_[0][i])
         else:  # if mixed characters, alphabets and symbols
             for c in seg:
                 if ord(c) < 256:
